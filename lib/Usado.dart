@@ -68,3 +68,26 @@ ElevatedButton(
 
 
 */
+
+/*
+  drawer(double h, double w) {
+    return Drawer(
+      width: w / 4,
+      child: ListView(
+        children: [
+          SizedBox(
+            height: h / 8,
+            child: DrawerHeader(
+              margin: const EdgeInsets.only(bottom: 0),
+              padding: EdgeInsets.zero,
+              child: Text('teste'),
+              decoration: BoxDecoration(color: Colors.grey),
+            ),
+          ),
+          lista('data'),
+          for (var i = 0; i < 19; i++) lista('teste $i'),
+        ],
+      ),
+    );
+  }
+*/

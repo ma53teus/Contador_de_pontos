@@ -1,5 +1,8 @@
+import 'package:contador_de_pontos/participantes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../card_participante.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -9,37 +12,58 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  TextEditingController textController = TextEditingController();
+  TextEditingController textController_nome = TextEditingController();
   String displayText = "";
+  List<Participantes> participantes = [];
   int _contador = 0;
+  bool ontap = false;
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
-    void _incrementar() {
+    _incrementar() {
       setState(() {
         _contador++;
       });
     }
 
-    void _decrementar() {
+    void _decrementar(int ponto) {
       setState(() {
         _contador--;
+        //ponto--;
       });
     }
 
     _mudando() {
-      setState(() {
-        displayText = textController.text;
-        textController.clear();
-      });
+      if (textController_nome != '') {
+        setState(() {
+          participantes.add(Participantes(nome: textController_nome.text));
+          displayText = textController_nome.text;
+          textController_nome.clear();
+        });
+      }
     }
 
     return Scaffold(
       //resizeToAvoidBottomInset: false,
-      //appBar: appBar(),
+      appBar: AppBar(
+        title: Text('contador'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                if (participantes != []) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              card_Participante(participantes: participantes)));
+                }
+              },
+              icon: Icon(Icons.open_in_new_rounded))
+        ],
+      ),
       //drawer: drawer(height,width),
       body: SafeArea(
         child: Column(
@@ -67,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                       textAlignVertical: TextAlignVertical.center,
                       maxLength: null,
                       maxLines: 1,
-                      controller: textController,
+                      controller: textController_nome,
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(vertical: 1),
                         hintText: 'nome',
@@ -101,8 +125,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     CircleAvatar(
                         backgroundColor: Colors.grey,
-                        child:
-                            Text('$_contador') //displayText.substring(0,2)),
+                        child: Text('$_contador') //displayText.substring(0,2)),
                         ),
                     Container(
                       width: width * 0.25,
@@ -134,47 +157,26 @@ class _HomePageState extends State<HomePage> {
             ),
             box(width),
             Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  card_teste(height,width,_decrementar,_incrementar,),
-                  //Text('data'),
-                  //for (var i = 0; i < 100; i++) Text('teste $i'),
-                ],
-              ),
-            )
-            /*SizedBox(
-              height: height * 0.8,
-              child: ListView(
-                children: [
-                  Text('data'),
-                  for (var i = 0; i < 100; i++) Text('teste $i'),
-                ],
-              ),
-            )*/
+              child: participantes != null
+                  ? ListView.builder(
+                      itemBuilder: (BuildContext context, int index) {
+                        return card_teste(
+                          height,
+                          width,
+                          _decrementar,
+                          _incrementar,
+                          participantes[index],
+                        );
+                      },
+                      itemCount: participantes.length,
+                      shrinkWrap: true,
+                    )
+                  : Center(
+                      child: Text('sem jogadores',
+                          style: TextStyle(fontSize: 50))),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  drawer(double h, double w) {
-    return Drawer(
-      width: w / 4,
-      child: ListView(
-        children: [
-          SizedBox(
-            height: h / 8,
-            child: DrawerHeader(
-              margin: const EdgeInsets.only(bottom: 0),
-              padding: EdgeInsets.zero,
-              child: Text('teste'),
-              decoration: BoxDecoration(color: Colors.grey),
-            ),
-          ),
-          lista('data'),
-          for (var i = 0; i < 19; i++) lista('teste $i'),
-        ],
       ),
     );
   }
@@ -205,26 +207,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  appBar() {
-    return AppBar(
-      centerTitle: true,
-      title: Text('contador'),
-    );
-  }
-
-  lista(
-    String data,
-  ) {
-    return ListTile(
-      title: Text(data),
-      onTap: () {
-        Navigator.pop(context);
-      },
-    );
-  }
-
-  card_teste(double h, double w, Function _decrementar,Function _incrementar){
-   return Container(
+  card_teste(double h, double w, Function _decrementar, Function _incrementar,
+      Participantes nome) {
+    return Container(
       width: w * 0.6,
       height: h * 0.15,
       decoration: BoxDecoration(
@@ -242,9 +227,8 @@ class _HomePageState extends State<HomePage> {
           children: [
             CircleAvatar(
                 backgroundColor: Colors.grey,
-                child:
-                Text('$_contador') //displayText.substring(0,2)),
-            ),
+                child: Text('${nome.ponto}') //displayText.substring(0,2)),
+                ),
             Container(
               width: w * 0.25,
               height: h * 0.075,
@@ -257,7 +241,7 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Center(
                 child: Text(
-                  displayText,
+                  nome.nome,
                 ),
               ),
             ),
@@ -265,15 +249,66 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Button(Icons.add, _incrementar),
-                Button(Icons.remove, _decrementar),
+                //Button(Icons.add, _incrementar(nome.ponto)),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      nome.ponto = nome.ponto + 1;
+                    });
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    width: 40,
+                    height: 40,
+                    child: Icon(Icons.add_circle),
+                  ),
+                ),
+                //Button(Icons.remove, _decrementar(nome.ponto)),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      nome.ponto = nome.ponto - 1;
+                    });
+                  },
+                  onLongPress: (){
+                    setState(() {
+                      nome.ponto--;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    alignment: Alignment.center,
+                    width: 40,
+                    height: 40,
+                    child: Icon(Icons.remove_circle),
+
+                  ),
+                ),
+                /*ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      nome.ponto = nome.ponto - 1;
+                    });
+                  },
+                  child: Icon(
+                    Icons.add_circle,
+                    color: Colors.black,
+                    size: 23,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    shape: CircleBorder(),
+                    backgroundColor: Colors.grey,
+                    //padding: EdgeInsets.all(12)
+                  ),
+                )*/
               ],
-            )
+            ),
           ],
         ),
       ),
     );
   }
 }
-
-
